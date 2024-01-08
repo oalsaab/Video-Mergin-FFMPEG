@@ -1,17 +1,12 @@
 from asyncio import PriorityQueue
+from typing import AsyncIterator
 
 from producer import Work
 
 
-async def consumer(queue: PriorityQueue) -> list[str]:
-    ordered = []
-
+async def consumer(queue: PriorityQueue) -> AsyncIterator[str]:
     while not queue.empty():
         item: Work = await queue.get()
 
-        ordered.append(f"file '{item.file.name}'")
+        yield f"file '{item.file.name}'\n"
         queue.task_done()
-
-        print(f"Consuming {item.file.name} --> {item.creation}")
-
-    return ordered
