@@ -33,5 +33,3 @@ async def producer(queue: PriorityQueue, file: Path):
     )
 
     await queue.put(work)
-
-    print(f"Putting {file} in Queue!")
