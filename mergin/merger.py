@@ -2,9 +2,7 @@ from pathlib import Path
 from typing import AsyncIterator
 
 
-async def writer(directory: Path, name: str, consumed: AsyncIterator[str]):
-    destination = Path(f"{directory}/{name}.txt")
-
-    with open(destination, "w") as fp:
+async def writer(file_input: Path, consumed: AsyncIterator[str]):
+    with open(file_input, "w") as fp:
         async for item in consumed:
             fp.write(item)
