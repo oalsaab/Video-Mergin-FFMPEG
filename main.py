@@ -9,7 +9,6 @@
 # Read Temp file into FFMPEG & Concat
 
 import asyncio
-import json
 import shlex
 from asyncio import PriorityQueue
 from dataclasses import dataclass
@@ -17,33 +16,17 @@ from dataclasses import field
 from datetime import datetime
 from pathlib import Path
 
+import msgspec
+
+from model import Streams
+
 COMMAND = shlex.split("ffprobe -v quiet -print_format json -show_format -show_streams")
-
-
-@dataclass
-class Stream:
-    stream: dict
-    file: Path
-
-    @property
-    def streams(self) -> list[dict]:
-        return self.stream.get("streams", [{}])
-
-    @property
-    def creation(self) -> datetime:
-        _tags: dict = next(iter(self.streams), {}).get("tags", {})
-        _creation_time = _tags.get("creation_time")
-
-        if _creation_time is None:
-            return None
-
-        return datetime.strptime(_creation_time, "%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 @dataclass(order=True)
 class Work:
-    stream: Stream = field(compare=False)
     creation: datetime
+    file: Path = field(compare=False)
 
 
 async def producer(queue: PriorityQueue, file: Path):
@@ -53,11 +36,12 @@ async def producer(queue: PriorityQueue, file: Path):
 
     stdout, _ = await process.communicate()
 
-    # Try out Mgspecs here
-    deserialised = json.loads(stdout)
-    stream = Stream(deserialised, file)
+    deserialised = msgspec.json.decode(stdout, type=Streams)
 
-    work = Work(stream, stream.creation)
+    work = Work(
+        creation=deserialised.format.tags.creation_time,
+        file=file,
+    )
 
     await queue.put(work)
 
@@ -70,7 +54,7 @@ async def consumer(queue: PriorityQueue):
 
         # Write contents to file or list
 
-        print(f"Consuming {item.stream.file} --> {item.creation}")
+        print(f"Consuming {item.file} --> {item.creation}")
 
         queue.task_done()
 
