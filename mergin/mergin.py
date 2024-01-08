@@ -11,7 +11,7 @@ async def main(files: Path):
     producers = [asyncio.create_task(producer(queue, file)) for file in files.iterdir()]
     await asyncio.gather(*producers)
 
-    asyncio.create_task(consumer(queue))
+    consumed = await asyncio.create_task(consumer(queue))
 
     await queue.join()
 
