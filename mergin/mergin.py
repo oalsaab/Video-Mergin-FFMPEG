@@ -10,6 +10,14 @@ from merger import merger
 from merger import writer
 from producer import producer
 
+# TODO:
+# Clean up after merging, use context manager with 'finally' statements
+# Use something more robust than the Format / Tags keys, look into using Streams keys?
+# Look into async errors, propogate errors so script can end early rather than hang in queue.join()
+# Swap print statements for log statements
+# Add entry point of script to Poetry
+# Use Typer or Click to construct some CLI?
+
 
 class File(NamedTuple):
     directory: Path
