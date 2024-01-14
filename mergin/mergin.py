@@ -4,6 +4,7 @@ import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
+from typing import NamedTuple
 from uuid import UUID
 
 from consumer import consumer
@@ -26,15 +27,11 @@ class Context:
     uuid: UUID
 
     def __post_init__(self):
-        Path(self.path).mkdir(parents=True, exist_ok=True)
+        Path(self.merge_path).mkdir(parents=True, exist_ok=True)
 
     @property
-    def path(self) -> Path:
+    def merge_path(self) -> Path:
         return Path(f"{self.directory}/{self.uuid}")
-
-    @property
-    def out(self) -> Path:
-        return Path(f"{self.path}/{self.uuid}.mkv")
 
     def __iter__(self) -> Iterator[Path]:
         for file in self.directory.iterdir():
@@ -43,11 +40,13 @@ class Context:
 
             yield file
 
-    def __str__(self) -> str:
-        return f"Creating FFMPEG output file: {self.out}"
+
+class PreProcessed(NamedTuple):
+    context: Context
+    inputs: list[str]
 
 
-async def main(directory: Path):
+async def preprocess(directory: Path) -> PreProcessed:
     logging.basicConfig(level=logging.INFO)
 
     queue = asyncio.PriorityQueue()
@@ -60,11 +59,14 @@ async def main(directory: Path):
 
     consumed = consumer(queue)
 
-    ffmpeg_input = await writer(context.path, consumed)
+    inputs = await writer(context.merge_path, consumed)
 
     await queue.join()
 
-    # merger(directory, file.inp, file.out)
+    return PreProcessed(context, inputs)
 
 
-asyncio.run(main(Path(r"c:\Users\omar_\Videos\testing\test")))
+def main():
+    directory = Path(r"c:\Users\omar_\Videos\testing\test")
+
+    preprocessed = asyncio.run(preprocess(directory))
