@@ -18,7 +18,7 @@ async def writer(merge_path: Path, consumed: AsyncIterator[Work]) -> list[str]:
     streams = defaultdict(list)
 
     async for item in consumed:
-        streams[item.key].append(f"file '{item.file.name}'\n")
+        streams[item.key].append(f"file '{item.file}'\n")
 
     for stream, inputs in streams.items():
         with open(Path(f"{merge_path}/{stream}.txt"), "w") as file:
