@@ -9,7 +9,7 @@ from uuid import UUID
 
 from consumer import consumer
 from consumer import writer
-from merger import merger
+from merger import multi_merge
 from producer import producer
 
 # TODO:
@@ -40,6 +40,9 @@ class Context:
 
             yield file
 
+    def __str__(self) -> str:
+        return f"Created directory to store results: {self.merge_path}"
+
 
 class PreProcessed(NamedTuple):
     context: Context
@@ -47,26 +50,30 @@ class PreProcessed(NamedTuple):
 
 
 async def preprocess(directory: Path) -> PreProcessed:
-    logging.basicConfig(level=logging.INFO)
-
     queue = asyncio.PriorityQueue()
 
     context = Context(directory, uuid.uuid4())
+    logging.info(context)
 
     producers = [asyncio.create_task(producer(queue, file)) for file in context]
 
     await asyncio.gather(*producers)
-
     consumed = consumer(queue)
 
     inputs = await writer(context.merge_path, consumed)
-
     await queue.join()
 
     return PreProcessed(context, inputs)
 
 
 def main():
-    directory = Path(r"c:\Users\omar_\Videos\testing\test")
+    logging.basicConfig(level=logging.INFO)
+    directory = Path(r"c:\Users\omar_\Videos\a_test")
 
     preprocessed = asyncio.run(preprocess(directory))
+    logging.info("Finished Preprocessing...")
+    multi_merge(preprocessed.context.merge_path, preprocessed.inputs)
+
+
+if __name__ == "__main__":
+    main()
