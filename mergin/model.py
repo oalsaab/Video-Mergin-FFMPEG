@@ -17,8 +17,12 @@ class Format(Struct):
 class Stream(Struct):
     codec_name: str
     codec_type: str
+    has_b_frames: int | None = None
     width: int | None = None
     height: int | None = None
+
+    def __bool__(self) -> bool:
+        return self.codec_type == "video"
 
 
 class MultiMedia(Struct):
@@ -28,7 +32,7 @@ class MultiMedia(Struct):
     @property
     def video(self) -> Stream | None:
         for stream in self.streams:
-            if stream.codec_type == "video":
+            if bool(stream):
                 return stream
 
         raise None
@@ -37,7 +41,16 @@ class MultiMedia(Struct):
     def key(self) -> str:
         audio = "_audio" if len(self.streams) > 1 else ""
 
-        fields = (str(field) for field in msgspec.structs.astuple(self.video))
+        # fields = (str(field) for field in msgspec.structs.astuple(self.video))
+        fields = (
+            str(field)
+            for field in [
+                self.video.codec_name,
+                self.video.codec_type,
+                self.video.width,
+                self.video.height,
+            ]
+        )
 
         return "_".join(fields) + audio
 
