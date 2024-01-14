@@ -17,6 +17,7 @@ COMMAND = shlex.split("ffprobe -v quiet -print_format json -show_format -show_st
 @dataclass(order=True)
 class Work:
     creation: datetime
+    key: str = field(compare=False)
     file: Path = field(compare=False)
 
 
@@ -46,6 +47,7 @@ async def producer(queue: PriorityQueue, file: Path):
     if multimedia is not None:
         work = Work(
             creation=multimedia.format.tags.creation_time,
+            key=multimedia.key,
             file=file,
         )
 
