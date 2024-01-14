@@ -44,6 +44,6 @@ class MultiMedia(Struct):
     def __len__(self) -> int:
         return len(self.streams)
 
-    def __iter__(self) -> Iterator:
+    def __iter__(self) -> Iterator[Stream]:
         for stream in self.streams:
             yield stream
