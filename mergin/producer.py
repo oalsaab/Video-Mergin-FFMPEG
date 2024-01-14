@@ -37,11 +37,9 @@ def _multimedia_decode(stdout: bytes, file: Path) -> MultiMedia | None:
 
 async def producer(queue: PriorityQueue, file: Path):
     cmd = COMMAND + [file]
-
     process = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE)
 
     stdout, _ = await process.communicate()
-
     multimedia = _multimedia_decode(stdout, file)
 
     if multimedia is not None:
