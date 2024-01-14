@@ -14,14 +14,14 @@ async def consumer(queue: PriorityQueue) -> AsyncIterator[Work]:
         queue.task_done()
 
 
-async def writer(directory: Path, consumed: AsyncIterator[Work]) -> list[str]:
+async def writer(merge_path: Path, consumed: AsyncIterator[Work]) -> list[str]:
     streams = defaultdict(list)
 
     async for item in consumed:
         streams[item.key].append(f"file '{item.file.name}'\n")
 
     for stream, inputs in streams.items():
-        with open(Path(f"{directory}/{stream}.txt"), "w") as file:
+        with open(Path(f"{merge_path}/{stream}.txt"), "w") as file:
             file.writelines(inputs)
 
     return list(streams.keys())
