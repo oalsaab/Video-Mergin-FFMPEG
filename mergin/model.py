@@ -2,6 +2,7 @@ from collections.abc import Iterator
 from datetime import datetime
 from datetime import timezone
 
+import msgspec
 from msgspec import Struct
 
 
@@ -28,9 +29,17 @@ class MultiMedia(Struct):
     def video(self) -> Stream | None:
         for stream in self.streams:
             if stream.codec_type == "video":
-                return Stream
+                return stream
 
         raise None
+
+    @property
+    def key(self) -> str:
+        audio = "_audio" if len(self.streams) > 1 else ""
+
+        fields = (str(field) for field in msgspec.structs.astuple(self.video))
+
+        return "_".join(fields) + audio
 
     def __len__(self) -> int:
         return len(self.streams)
