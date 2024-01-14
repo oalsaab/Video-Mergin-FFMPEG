@@ -1,15 +1,10 @@
 import shlex
 import subprocess
 from pathlib import Path
-from typing import AsyncIterator
 
 
-async def writer(file_input: Path, consumed: AsyncIterator[str]):
-    with open(file_input, "w") as fp:
-        async for item in consumed:
-            fp.write(item)
-
-
+# You can most likely remove the -safe 0 parameter here,
+# Read the docs on concat, add notes in readme that it is a demuxer / muxer.
 def merger(directory: Path, file_input: Path, file_output: Path):
     cmd = shlex.split(
         f"ffmpeg "
