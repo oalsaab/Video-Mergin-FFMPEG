@@ -42,7 +42,7 @@ class Context:
             yield file
 
     def __str__(self) -> str:
-        return f"Created directory to store results: {self.merge_path}"
+        return f"Created directory to store results: {self.merge_path.name}"
 
 
 class PreProcessed(NamedTuple):
@@ -72,9 +72,13 @@ def main():
     logging.basicConfig(level=logging.INFO)
     directory = Path(r"c:\Users\omar_\Videos\a_test")
 
+    logging.info("Initiating Preprocessing...")
     preprocessed = asyncio.run(preprocess(directory))
+
     logging.info("Finished Preprocessing...")
     multi_merge(preprocessed.context.merge_path, preprocessed.inputs)
+
+    logging.info("Completed Merges")
 
 
 if __name__ == "__main__":
