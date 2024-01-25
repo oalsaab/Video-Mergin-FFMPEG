@@ -13,7 +13,6 @@ class Result(NamedTuple):
 
     def __str__(self):
         _result = "Successful" if self.code == 0 else "Failed"
-
         return f"{_result}: Merge of {self.inp}"
 
 
