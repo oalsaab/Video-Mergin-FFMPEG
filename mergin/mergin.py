@@ -8,6 +8,7 @@ from typing import NamedTuple
 from uuid import UUID
 
 from consumer import consumer
+from consumer import partition
 from consumer import writer
 from merger import multi_merge
 from producer import producer
@@ -60,9 +61,10 @@ async def preprocess(directory: Path) -> PreProcessed:
     await asyncio.gather(*producers)
     consumed = consumer(queue)
 
-    inputs = await writer(context.merge_path, consumed)
+    partitions = await partition(consumed)
     await queue.join()
 
+    inputs = writer(context.merge_path, partitions)
     return PreProcessed(context, inputs)
 
 
