@@ -10,7 +10,7 @@ from uuid import UUID
 from consumer import consumer
 from consumer import partition
 from consumer import writer
-from merger import multi_merge
+from merger import merger
 from producer import producer
 
 # TODO:
@@ -76,7 +76,7 @@ def main():
     preprocessed = asyncio.run(preprocess(directory))
 
     logging.info("Finished Preprocessing...")
-    multi_merge(preprocessed.context.merge_path, preprocessed.inputs)
+    merger(preprocessed.context.merge_path, preprocessed.inputs)
 
     logging.info("Completed Merges")
 

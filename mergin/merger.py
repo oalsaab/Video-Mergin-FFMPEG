@@ -17,10 +17,10 @@ class Result(NamedTuple):
         return f"{_result}: Merge of {self.inp}"
 
 
-def multi_merge(merge_path: Path, inputs: list[str]):
+def merger(merge_path: Path, inputs: list[str]):
     logging.info("Initiating Merges...")
     uniques = len(inputs)
-    process = partial(merger, merge_path)
+    process = partial(merge, merge_path)
 
     with Pool(uniques) as pool:
         for result in pool.imap_unordered(process, inputs):
@@ -29,7 +29,7 @@ def multi_merge(merge_path: Path, inputs: list[str]):
 
 
 # Read the docs on concat, add notes in readme that it is a demuxer / muxer.
-def merger(merge_path: Path, txt_input: str) -> Result:
+def merge(merge_path: Path, txt_input: str) -> Result:
     cmd = shlex.split(
         f"ffmpeg "
         f"-hide_banner -loglevel error -f concat -safe 0 "
