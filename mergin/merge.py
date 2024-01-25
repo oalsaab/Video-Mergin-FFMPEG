@@ -8,11 +8,12 @@ from typing import NamedTuple
 from uuid import UUID
 
 import click
-from consumer import consumer
-from consumer import partition
-from consumer import writer
-from merger import merger
-from producer import producer
+
+from .consumer import consumer
+from .consumer import partition
+from .consumer import writer
+from .merger import merger
+from .producer import producer
 
 
 @dataclass

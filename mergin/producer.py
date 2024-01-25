@@ -8,8 +8,9 @@ from datetime import datetime
 from pathlib import Path
 
 import msgspec
-from model import MultiMedia
 from msgspec import ValidationError
+
+from .model import MultiMedia
 
 COMMAND = shlex.split(
     f"ffprobe -v quiet "

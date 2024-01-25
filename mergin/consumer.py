@@ -3,7 +3,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import AsyncIterator
 
-from producer import Work
+from .producer import Work
 
 
 async def consumer(queue: PriorityQueue) -> AsyncIterator[Work]:
