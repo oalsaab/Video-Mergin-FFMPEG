@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import NamedTuple
 from uuid import UUID
 
+import click
 from consumer import consumer
 from consumer import partition
 from consumer import writer
@@ -60,9 +61,10 @@ async def preprocess(directory: Path) -> PreProcessed:
     return PreProcessed(context, inputs)
 
 
-def mergin():
+@click.command()
+@click.argument("directory", type=click.Path(exists=True, path_type=Path))
+def mergin(directory: Path):
     logging.basicConfig(level=logging.INFO)
-    directory = Path(r"c:\Users\omar_\Videos\a_test")
 
     logging.info("Initiating Preprocessing...")
     preprocessed = asyncio.run(preprocess(directory))
