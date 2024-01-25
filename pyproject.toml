@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 msgspec = "^0.18.5"
+click = "^8.1.7"
 
 
 [build-system]
