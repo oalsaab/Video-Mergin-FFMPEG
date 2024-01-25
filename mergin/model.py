@@ -2,6 +2,7 @@ from collections.abc import Iterator
 from datetime import datetime
 from datetime import timezone
 
+import msgspec
 from msgspec import Struct
 
 
@@ -11,6 +12,7 @@ class Tags(Struct):
 
 class Format(Struct):
     tags: Tags
+    nb_streams: int
 
 
 class Stream(Struct):
@@ -38,20 +40,10 @@ class MultiMedia(Struct):
 
     @property
     def key(self) -> str:
-        audio = "_audio" if len(self.streams) > 1 else ""
+        audio = "audio" if (self.format.nb_streams) > 1 else "no_audio"
 
-        # fields = (str(field) for field in msgspec.structs.astuple(self.video))
-        fields = (
-            str(field)
-            for field in [
-                self.stream.codec_name,
-                self.stream.codec_type,
-                self.stream.width,
-                self.stream.height,
-            ]
-        )
-
-        return "_".join(fields) + audio
+        fields = [str(field) for field in msgspec.structs.astuple(self.stream)]
+        return "_".join(fields + [audio])
 
     def __len__(self) -> int:
         return len(self.streams)
