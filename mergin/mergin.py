@@ -60,7 +60,7 @@ async def preprocess(directory: Path) -> PreProcessed:
     return PreProcessed(context, inputs)
 
 
-def main():
+def mergin():
     logging.basicConfig(level=logging.INFO)
     directory = Path(r"c:\Users\omar_\Videos\a_test")
 
@@ -74,4 +74,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    mergin()
