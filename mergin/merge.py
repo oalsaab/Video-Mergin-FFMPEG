@@ -73,7 +73,3 @@ def mergin(directory: Path):
     merger(preprocessed.context.merge_path, preprocessed.inputs)
 
     logging.info("Completed Merges")
-
-
-if __name__ == "__main__":
-    mergin()
