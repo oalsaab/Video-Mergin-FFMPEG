@@ -2,7 +2,6 @@ from collections.abc import Iterator
 from datetime import datetime
 from datetime import timezone
 
-import msgspec
 from msgspec import Struct
 
 
@@ -17,9 +16,9 @@ class Format(Struct):
 class Stream(Struct):
     codec_name: str
     codec_type: str
-    has_b_frames: int | None = None
     width: int | None = None
     height: int | None = None
+    has_b_frames: int | None = None
 
     def __bool__(self) -> bool:
         return self.codec_type == "video"
@@ -30,12 +29,12 @@ class MultiMedia(Struct):
     streams: list[Stream]
 
     @property
-    def video(self) -> Stream | None:
-        for stream in self.streams:
-            if bool(stream):
-                return stream
+    def stream(self) -> Stream | None:
+        return next(iter(self.streams))
 
-        raise None
+    @property
+    def is_video(self) -> bool:
+        return bool(self.stream)
 
     @property
     def key(self) -> str:
@@ -45,10 +44,10 @@ class MultiMedia(Struct):
         fields = (
             str(field)
             for field in [
-                self.video.codec_name,
-                self.video.codec_type,
-                self.video.width,
-                self.video.height,
+                self.stream.codec_name,
+                self.stream.codec_type,
+                self.stream.width,
+                self.stream.height,
             ]
         )
 

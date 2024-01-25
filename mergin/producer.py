@@ -34,7 +34,7 @@ def _multimedia_decode(stdout: bytes, file: Path) -> MultiMedia | None:
         logging.warning("Failed to decode: %s", file.name)
         return None
 
-    if deserialised.video is None:
+    if deserialised.is_video is False:
         logging.warning("Failed to identify video stream for: %s", file.name)
         return None
 
