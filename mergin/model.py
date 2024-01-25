@@ -16,8 +16,8 @@ class Format(Struct):
 class Stream(Struct):
     codec_name: str
     codec_type: str
-    width: int | None = None
-    height: int | None = None
+    width: int
+    height: int
     has_b_frames: int | None = None
 
     def __bool__(self) -> bool:
