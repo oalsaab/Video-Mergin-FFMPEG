@@ -11,9 +11,12 @@ class Result(NamedTuple):
     code: int
     inp: str
 
-    def __str__(self):
-        _result = "Successful" if self.code == 0 else "Failed"
-        return f"{_result}: Merge of {self.inp}"
+    def __str__(self) -> str:
+        status = "Successful" if bool(self) else "Failed"
+        return f"{status}: Merge of {self.inp}"
+
+    def __bool__(self) -> bool:
+        return self.code == 0
 
 
 def merger(merge_path: Path, inputs: list[str]):
