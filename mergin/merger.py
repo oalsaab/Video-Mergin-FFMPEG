@@ -83,6 +83,16 @@ def _merge(merge_path: Path, txt_input: str) -> Result:
     return Result(process.returncode, txt_input)
 
 
+def _parse(lines: list[str]) -> Iterator[str]:
+    quotes = slice(1, -1)
+
+    for line in lines:
+        _, stream = line.split(sep=" ", maxsplit=1)
+        sanitised = stream.strip()
+
+        yield f"{Path(sanitised[quotes]).name}\n"
+
+
 def finalise(merge_path: Path, results: Iterator[Result]):
     with open(merge_path / OUT_PATH, "w") as outfile:
         for result in results:
@@ -90,5 +100,5 @@ def finalise(merge_path: Path, results: Iterator[Result]):
                 header = result.create_header()
                 outfile.write(header)
 
-                streams = infile.readlines()
+                streams = _parse(infile.readlines())
                 outfile.writelines(streams)
