@@ -11,7 +11,7 @@ from typing import TextIO
 
 from .model import Stream
 
-OUT_PATH = Path("result.txt")
+MERGE_FILE = Path("merged.txt")
 
 
 class Result(NamedTuple):
@@ -97,7 +97,7 @@ def _parse(lines: list[str]) -> Iterator[str]:
 # pass the results of partition method to simplify things but this
 # approach was chosen instead to play around with custom context managers
 def finalise(merge_path: Path, results: Iterator[Result]):
-    with open(merge_path / OUT_PATH, "w") as outfile:
+    with open(merge_path / MERGE_FILE, "w") as outfile:
         for result in results:
             with cleanup(merge_path / result.in_path, "r") as infile:
                 header = result.create_header()
