@@ -44,17 +44,6 @@ class Result(NamedTuple):
         return self.code == 0
 
 
-@contextmanager
-def cleanup(path: Path, mode: str) -> Iterator[TextIO]:
-    file = open(path, mode)
-
-    try:
-        yield file
-    finally:
-        file.close()
-        path.unlink()
-
-
 def merger(merge_path: Path, inputs: list[str]) -> Iterator[Result]:
     logging.info("Initiating Merges...")
     uniques = len(inputs)
@@ -81,6 +70,17 @@ def _merge(merge_path: Path, txt_input: str) -> Result:
 
     process = subprocess.run(cmd, cwd=merge_path)
     return Result(process.returncode, txt_input)
+
+
+@contextmanager
+def cleanup(path: Path, mode: str) -> Iterator[TextIO]:
+    file = open(path, mode)
+
+    try:
+        yield file
+    finally:
+        file.close()
+        path.unlink()
 
 
 def _parse(lines: list[str]) -> Iterator[str]:
