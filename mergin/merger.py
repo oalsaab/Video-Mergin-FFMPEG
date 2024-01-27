@@ -78,7 +78,7 @@ def _merge(merge_path: Path, txt_input: str) -> Result:
 
 
 def finalise(merge_path: Path, results: Iterator[Result]):
-    with open(Path(f"{merge_path}/result.txt"), "a") as outfile:
+    with open(Path(f"{merge_path}/result.txt"), "w") as outfile:
         for result in results:
             with cleanup(Path(f"{merge_path}/{result.inp}.txt"), "r") as infile:
                 header = result.create_header()
