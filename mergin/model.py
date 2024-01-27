@@ -4,10 +4,16 @@ from datetime import timezone
 
 import msgspec
 from msgspec import Struct
+from msgspec import field
+
+
+def _mock_time() -> datetime:
+    now = datetime.now(timezone.utc).timestamp()
+    return datetime.fromtimestamp(now, timezone.utc)
 
 
 class Tags(Struct):
-    creation_time: datetime = datetime.fromtimestamp(0, timezone.utc)
+    creation_time: datetime = field(default_factory=_mock_time)
 
 
 class Format(Struct):
