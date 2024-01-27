@@ -40,7 +40,7 @@ class MultiMedia(Struct):
 
     @property
     def key(self) -> str:
-        audio = "audio" if (self.format.nb_streams) > 1 else "no_audio"
+        audio = "audio" if (self.format.nb_streams) > 1 else "no-audio"
 
         fields = [str(field) for field in msgspec.structs.astuple(self.stream)]
         return "_".join(fields + [audio])
