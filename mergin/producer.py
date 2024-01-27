@@ -13,7 +13,8 @@ from msgspec import ValidationError
 from .model import MultiMedia
 
 COMMAND = shlex.split(
-    f"ffprobe -v quiet "
+    f"ffprobe "
+    f"-v quiet "
     f"-print_format json "
     f"-show_format "
     f"-show_streams "
