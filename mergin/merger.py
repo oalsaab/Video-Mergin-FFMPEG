@@ -11,6 +11,8 @@ from typing import TextIO
 
 from .model import Stream
 
+OUT_PATH = Path("result.txt")
+
 
 class Result(NamedTuple):
     code: int
@@ -29,6 +31,10 @@ class Result(NamedTuple):
         border = "=" * (len(header) + 4)
 
         return f"{border}\n| {header} |\n{border}\n"
+
+    @property
+    def in_path(self) -> Path:
+        return Path(f"{self.inp}.txt")
 
     def __str__(self) -> str:
         status = "Successful" if bool(self) else "Failed"
@@ -78,9 +84,9 @@ def _merge(merge_path: Path, txt_input: str) -> Result:
 
 
 def finalise(merge_path: Path, results: Iterator[Result]):
-    with open(Path(f"{merge_path}/result.txt"), "w") as outfile:
+    with open(merge_path / OUT_PATH, "w") as outfile:
         for result in results:
-            with cleanup(Path(f"{merge_path}/{result.inp}.txt"), "r") as infile:
+            with cleanup(merge_path / result.in_path, "r") as infile:
                 header = result.create_header()
                 outfile.write(header)
 
