@@ -12,6 +12,7 @@ import click
 from .consumer import consumer
 from .consumer import partition
 from .consumer import writer
+from .merger import finalise
 from .merger import merger
 from .producer import producer
 
@@ -71,6 +72,8 @@ def mergin(directory: Path):
     preprocessed = asyncio.run(preprocess(directory))
 
     logging.info("Finished Preprocessing...")
-    merger(preprocessed.context.merge_path, preprocessed.inputs)
+
+    merged = merger(preprocessed.context.merge_path, preprocessed.inputs)
+    finalise(preprocessed.context.merge_path, merged)
 
     logging.info("Completed Merges")

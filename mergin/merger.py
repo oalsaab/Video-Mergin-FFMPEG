@@ -49,7 +49,7 @@ def cleanup(path: Path, mode: str) -> Iterator[TextIO]:
         path.unlink()
 
 
-def merger(merge_path: Path, inputs: list[str]):
+def merger(merge_path: Path, inputs: list[str]) -> Iterator[Result]:
     logging.info("Initiating Merges...")
     uniques = len(inputs)
     process = partial(_merge, merge_path)
@@ -58,13 +58,7 @@ def merger(merge_path: Path, inputs: list[str]):
         for result in pool.imap_unordered(process, inputs):
             logging.info(result)
 
-            with open(Path(f"{merge_path}/result.txt"), "a") as outfile:
-                with cleanup(Path(f"{merge_path}/{result.inp}.txt"), "r") as infile:
-                    header = result.create_header()
-                    outfile.write(header)
-
-                    streams = infile.readlines()
-                    outfile.writelines(streams)
+            yield result
 
 
 # Read the docs on concat, add notes in readme that it is a demuxer / muxer.
@@ -81,3 +75,14 @@ def _merge(merge_path: Path, txt_input: str) -> Result:
 
     process = subprocess.run(cmd, cwd=merge_path)
     return Result(process.returncode, txt_input)
+
+
+def finalise(merge_path: Path, results: Iterator[Result]):
+    with open(Path(f"{merge_path}/result.txt"), "a") as outfile:
+        for result in results:
+            with cleanup(Path(f"{merge_path}/{result.inp}.txt"), "r") as infile:
+                header = result.create_header()
+                outfile.write(header)
+
+                streams = infile.readlines()
+                outfile.writelines(streams)
