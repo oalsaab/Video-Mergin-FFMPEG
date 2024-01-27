@@ -93,6 +93,9 @@ def _parse(lines: list[str]) -> Iterator[str]:
         yield f"{Path(sanitised[quotes]).name}\n"
 
 
+# Over-engineered and over-complicated logic, could just as easily
+# pass the results of partition method to simplify things but this
+# approach was chosen instead to play around with custom context managers
 def finalise(merge_path: Path, results: Iterator[Result]):
     with open(merge_path / OUT_PATH, "w") as outfile:
         for result in results:
