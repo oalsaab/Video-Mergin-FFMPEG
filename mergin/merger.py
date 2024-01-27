@@ -51,7 +51,10 @@ def merger(merge_path: Path, inputs: list[str]):
 def _merge(merge_path: Path, txt_input: str) -> Result:
     cmd = shlex.split(
         f"ffmpeg "
-        f"-hide_banner -loglevel error -f concat -safe 0 "
+        f"-hide_banner "
+        f"-loglevel error "
+        f"-f concat "
+        f"-safe 0 "
         f"-i {txt_input}.txt "
         f"-c copy {txt_input}.mkv"
     )
