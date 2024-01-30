@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import shlex
-from asyncio import PriorityQueue
+from asyncio import Queue
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
@@ -43,21 +43,23 @@ def _multimedia_decode(stdout: bytes, file: Path) -> MultiMedia | None:
     return deserialised
 
 
-# It's much simpler to save results to a simple data structure
-# and then sort it by creation date as a post-processing step
-# but an async priority queue is more interesting for learning purposes
-async def producer(queue: PriorityQueue, file: Path):
-    cmd = COMMAND + [file]
-    process = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE)
-
-    stdout, _ = await process.communicate()
-    multimedia = _multimedia_decode(stdout, file)
-
-    if multimedia is not None:
-        work = Work(
-            creation=multimedia.format.tags.creation_time,
-            key=multimedia.key,
-            file=file,
+async def producer(queue: Queue, files: list[Path]):
+    for file in files:
+        cmd = COMMAND + [file]
+        process = await asyncio.create_subprocess_exec(
+            *cmd, stdout=asyncio.subprocess.PIPE
         )
 
-        await queue.put(work)
+        stdout, _ = await process.communicate()
+        multimedia = _multimedia_decode(stdout, file)
+
+        if multimedia is not None:
+            work = Work(
+                creation=multimedia.format.tags.creation_time,
+                key=multimedia.key,
+                file=file,
+            )
+
+            await queue.put(work)
+
+    await queue.put(None)
