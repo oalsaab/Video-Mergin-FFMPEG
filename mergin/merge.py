@@ -17,6 +17,8 @@ from .merger import finalise
 from .merger import merger
 from .producer import producer
 
+LIMIT = 10
+
 
 @dataclass
 class Context:
@@ -47,7 +49,7 @@ class PreProcessed(NamedTuple):
 
 
 async def preprocess(directory: Path) -> PreProcessed:
-    queue = asyncio.Queue(3)
+    queue = asyncio.Queue(LIMIT)
 
     context = Context(directory, uuid.uuid4())
     logging.info(context)
