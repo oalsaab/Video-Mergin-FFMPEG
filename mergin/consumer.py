@@ -7,7 +7,7 @@ from typing import TypeAlias
 
 from .producer import Work
 
-Partitioned: TypeAlias = dict[str, list[Work]]
+Partitioned: TypeAlias = dict[Path, list[Work]]
 
 
 async def consumer(queue: Queue) -> list[Work]:
@@ -26,18 +26,20 @@ async def consumer(queue: Queue) -> list[Work]:
 
 
 async def partition(consumed: list[Work]) -> Partitioned:
-    partitioned = defaultdict(list)
+    partitions = defaultdict(list)
 
     while consumed:
         item = heappop(consumed)
-        partitioned[item.key].append(item)
+        partition = Path(f"{item.key}.txt")
 
-    return {k: v for k, v in partitioned.items() if len(v) != 1}
+        partitions[partition].append(item)
+
+    return {k: v for k, v in partitions.items() if len(v) != 1}
 
 
-def writer(merge_path: Path, partitions: Partitioned) -> list[str]:
-    for stream, inputs in partitions.items():
-        with open(Path(f"{merge_path}/{stream}.txt"), "w") as file:
+def writer(merge_path: Path, partitions: Partitioned) -> list[Path]:
+    for partition, inputs in partitions.items():
+        with open(merge_path / partition, "w") as file:
             file.writelines((f"file '{line.file}'\n" for line in inputs))
 
     return list(partitions.keys())

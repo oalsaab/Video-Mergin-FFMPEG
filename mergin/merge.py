@@ -4,7 +4,6 @@ import time
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass
-from itertools import islice
 from pathlib import Path
 from typing import NamedTuple
 from uuid import UUID
@@ -44,7 +43,7 @@ class Context:
 
 class PreProcessed(NamedTuple):
     context: Context
-    inputs: list[str]
+    inputs: list[Path]
 
 
 async def preprocess(directory: Path) -> PreProcessed:
