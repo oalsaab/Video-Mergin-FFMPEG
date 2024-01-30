@@ -47,7 +47,7 @@ class Result(NamedTuple):
 def merger(merge_path: Path, inputs: list[str]) -> Iterator[Result]:
     logging.info("Initiating Merges...")
     uniques = len(inputs)
-    process = partial(_merge, merge_path)
+    process = partial(_concat, merge_path)
 
     with Pool(uniques) as pool:
         for result in pool.imap_unordered(process, inputs):
@@ -57,7 +57,7 @@ def merger(merge_path: Path, inputs: list[str]) -> Iterator[Result]:
 
 
 # Read the docs on concat, add notes in readme that it is a demuxer / muxer.
-def _merge(merge_path: Path, txt_input: str) -> Result:
+def _concat(merge_path: Path, txt_input: str) -> Result:
     cmd = shlex.split(
         f"ffmpeg "
         f"-hide_banner "
