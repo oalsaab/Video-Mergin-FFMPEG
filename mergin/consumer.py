@@ -1,31 +1,43 @@
-from asyncio import PriorityQueue
+from asyncio import Queue
 from collections import defaultdict
+from heapq import heappop
+from heapq import heappush
 from pathlib import Path
-from typing import AsyncIterator
+from typing import TypeAlias
 
 from .producer import Work
 
+Partitioned: TypeAlias = dict[str, list[Work]]
 
-async def consumer(queue: PriorityQueue) -> AsyncIterator[Work]:
-    while not queue.empty():
+
+async def consumer(queue: Queue) -> list[Work]:
+    ordered = []
+
+    while True:
         item: Work = await queue.get()
-
-        yield item
         queue.task_done()
 
+        if item is None:
+            break
 
-async def partition(consumed: AsyncIterator[Work]) -> dict[str, list]:
+        heappush(ordered, item)
+
+    return ordered
+
+
+async def partition(consumed: list[Work]) -> Partitioned:
     partitioned = defaultdict(list)
 
-    async for item in consumed:
-        partitioned[item.key].append(f"file '{item.file}'\n")
+    while consumed:
+        item = heappop(consumed)
+        partitioned[item.key].append(item)
 
     return {k: v for k, v in partitioned.items() if len(v) != 1}
 
 
-def writer(merge_path: Path, partitions: dict[str, list]) -> list[str]:
+def writer(merge_path: Path, partitions: Partitioned) -> list[str]:
     for stream, inputs in partitions.items():
         with open(Path(f"{merge_path}/{stream}.txt"), "w") as file:
-            file.writelines(inputs)
+            file.writelines((f"file '{line.file}'\n" for line in inputs))
 
     return list(partitions.keys())
