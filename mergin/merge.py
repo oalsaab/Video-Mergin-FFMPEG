@@ -1,8 +1,10 @@
 import asyncio
 import logging
+import time
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass
+from itertools import islice
 from pathlib import Path
 from typing import NamedTuple
 from uuid import UUID
@@ -46,18 +48,18 @@ class PreProcessed(NamedTuple):
 
 
 async def preprocess(directory: Path) -> PreProcessed:
-    queue = asyncio.PriorityQueue()
+    queue = asyncio.Queue(3)
 
     context = Context(directory, uuid.uuid4())
     logging.info(context)
 
-    producers = [asyncio.create_task(producer(queue, file)) for file in context]
+    producers = asyncio.create_task(producer(queue, context))
+    consumers = asyncio.create_task(consumer(queue))
 
-    await asyncio.gather(*producers)
-    consumed = consumer(queue)
+    _, consumed = await asyncio.gather(producers, consumers)
 
-    partitions = await partition(consumed)
     await queue.join()
+    partitions = await partition(consumed)
 
     inputs = writer(context.merge_path, partitions)
     return PreProcessed(context, inputs)
@@ -66,6 +68,7 @@ async def preprocess(directory: Path) -> PreProcessed:
 @click.command()
 @click.argument("directory", type=click.Path(exists=True, path_type=Path))
 def mergin(directory: Path):
+    t0 = time.perf_counter()
     logging.basicConfig(level=logging.INFO)
 
     logging.info("Initiating Preprocessing...")
@@ -77,3 +80,8 @@ def mergin(directory: Path):
     finalise(preprocessed.context.merge_path, merged)
 
     logging.info("Completed Merges")
+    t1 = time.perf_counter()
+
+    performance = t1 - t0
+
+    logging.info("Finished processing: %f", performance)
