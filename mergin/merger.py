@@ -16,10 +16,10 @@ MERGE_FILE = Path("merged.txt")
 
 class Result(NamedTuple):
     code: int
-    inp: Path
+    processed: Path
 
     def create_header(self) -> str:
-        values = self.inp.stem.split("_")
+        values = self.processed.stem.split("_")
         fields = [*Stream.__struct_fields__, *["audio"]]
 
         mapped = dict(zip(fields, values))
@@ -95,7 +95,7 @@ def _parse(lines: list[str]) -> Iterator[str]:
 def finalise(merge_path: Path, results: Iterator[Result]):
     with open(merge_path / MERGE_FILE, "w") as outfile:
         for result in results:
-            with cleanup(merge_path / result.inp, "r") as infile:
+            with cleanup(merge_path / result.processed, "r") as infile:
                 header = result.create_header()
                 outfile.write(header)
 
