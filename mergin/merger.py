@@ -16,10 +16,10 @@ MERGE_FILE = Path("merged.txt")
 
 class Result(NamedTuple):
     code: int
-    inp: str
+    inp: Path
 
     def create_header(self) -> str:
-        values = self.inp.split("_")
+        values = self.inp.stem.split("_")
         fields = [*Stream.__struct_fields__, *["audio"]]
 
         mapped = dict(zip(fields, values))
@@ -32,19 +32,15 @@ class Result(NamedTuple):
 
         return f"{border}\n| {header} |\n{border}\n"
 
-    @property
-    def in_path(self) -> Path:
-        return Path(f"{self.inp}.txt")
-
     def __str__(self) -> str:
         status = "Successful" if bool(self) else "Failed"
-        return f"{status}: Merge of {self.inp}"
+        return f"{status}: Merge of {self.inp.stem}"
 
     def __bool__(self) -> bool:
         return self.code == 0
 
 
-def merger(merge_path: Path, inputs: list[str]) -> Iterator[Result]:
+def merger(merge_path: Path, inputs: list[Path]) -> Iterator[Result]:
     logging.info("Initiating Merges...")
     uniques = len(inputs)
     process = partial(_concat, merge_path)
@@ -57,15 +53,15 @@ def merger(merge_path: Path, inputs: list[str]) -> Iterator[Result]:
 
 
 # Read the docs on concat, add notes in readme that it is a demuxer / muxer.
-def _concat(merge_path: Path, txt_input: str) -> Result:
+def _concat(merge_path: Path, txt_input: Path) -> Result:
     cmd = shlex.split(
         f"ffmpeg "
         f"-hide_banner "
         f"-loglevel error "
         f"-f concat "
         f"-safe 0 "
-        f"-i {txt_input}.txt "
-        f"-c copy {txt_input}.mkv"
+        f"-i {txt_input} "
+        f"-c copy {txt_input.stem}.mkv"
     )
 
     process = subprocess.run(cmd, cwd=merge_path)
@@ -99,7 +95,7 @@ def _parse(lines: list[str]) -> Iterator[str]:
 def finalise(merge_path: Path, results: Iterator[Result]):
     with open(merge_path / MERGE_FILE, "w") as outfile:
         for result in results:
-            with cleanup(merge_path / result.in_path, "r") as infile:
+            with cleanup(merge_path / result.inp, "r") as infile:
                 header = result.create_header()
                 outfile.write(header)
 
