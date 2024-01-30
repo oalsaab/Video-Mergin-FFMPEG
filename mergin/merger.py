@@ -34,7 +34,7 @@ class Result(NamedTuple):
 
     def __str__(self) -> str:
         status = "Successful" if bool(self) else "Failed"
-        return f"{status}: Merge of {self.inp.stem}"
+        return f"{status}: Merge of {self.processed.stem}"
 
     def __bool__(self) -> bool:
         return self.code == 0
