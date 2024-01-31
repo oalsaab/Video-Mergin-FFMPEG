@@ -10,6 +10,9 @@ from .producer import Work
 Partitioned: TypeAlias = dict[Path, list[Work]]
 
 
+# Using a heap structure to keep the order is a bit extreme
+# it would be simpler and probably more efficient to sort items
+# post processing, but this is more of an learning experience
 async def consumer(queue: Queue[Work | None]) -> list[Work]:
     ordered = []
 
