@@ -6,8 +6,6 @@ from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
 from pathlib import Path
-from typing import Iterator
-from typing import Protocol
 
 import msgspec
 from msgspec import ValidationError
@@ -22,11 +20,6 @@ COMMAND = shlex.split(
     f"-show_streams "
     f"-select_streams v:0"
 )
-
-
-class Files(Protocol):
-    def __iter__(self) -> Iterator[Path]:
-        ...
 
 
 @dataclass(order=True)
@@ -50,8 +43,11 @@ def _multimedia_decode(stdout: bytes, file: Path) -> MultiMedia | None:
     return deserialised
 
 
-async def producer(queue: Queue, files: Files):
+async def producer(queue: Queue, files: tuple[Path]):
     for file in files:
+        if file.is_dir():
+            continue
+
         cmd = COMMAND + [file]
         process = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.PIPE
@@ -60,13 +56,13 @@ async def producer(queue: Queue, files: Files):
         stdout, _ = await process.communicate()
         multimedia = _multimedia_decode(stdout, file)
 
-        if multimedia is not None:
-            work = Work(
-                creation=multimedia.format.tags.creation_time,
-                key=multimedia.key,
-                file=file,
-            )
+        if multimedia is None:
+            continue
 
-            await queue.put(work)
+        work = Work(
+            creation=multimedia.format.tags.creation_time,
+            key=multimedia.key,
+            file=file,
+        )
 
-    await queue.put(None)
+        await queue.put(work)
