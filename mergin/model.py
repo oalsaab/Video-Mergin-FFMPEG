@@ -4,22 +4,29 @@ from datetime import timezone
 
 import msgspec
 from msgspec import Struct
+from msgspec import field
+
+
+def _mock_time() -> datetime:
+    now = datetime.now(timezone.utc).timestamp()
+    return datetime.fromtimestamp(now, timezone.utc)
 
 
 class Tags(Struct):
-    creation_time: datetime = datetime.fromtimestamp(0, timezone.utc)
+    creation_time: datetime = field(default_factory=_mock_time)
 
 
 class Format(Struct):
     tags: Tags
+    nb_streams: int
 
 
 class Stream(Struct):
     codec_name: str
     codec_type: str
+    width: int
+    height: int
     has_b_frames: int | None = None
-    width: int | None = None
-    height: int | None = None
 
     def __bool__(self) -> bool:
         return self.codec_type == "video"
@@ -30,29 +37,19 @@ class MultiMedia(Struct):
     streams: list[Stream]
 
     @property
-    def video(self) -> Stream | None:
-        for stream in self.streams:
-            if bool(stream):
-                return stream
+    def stream(self) -> Stream | None:
+        return next(iter(self.streams))
 
-        raise None
+    @property
+    def is_video(self) -> bool:
+        return bool(self.stream)
 
     @property
     def key(self) -> str:
-        audio = "_audio" if len(self.streams) > 1 else ""
+        audio = "audio" if (self.format.nb_streams) > 1 else "no-audio"
 
-        # fields = (str(field) for field in msgspec.structs.astuple(self.video))
-        fields = (
-            str(field)
-            for field in [
-                self.video.codec_name,
-                self.video.codec_type,
-                self.video.width,
-                self.video.height,
-            ]
-        )
-
-        return "_".join(fields) + audio
+        fields = [str(field) for field in msgspec.structs.astuple(self.stream)]
+        return "_".join(fields + [audio])
 
     def __len__(self) -> int:
         return len(self.streams)

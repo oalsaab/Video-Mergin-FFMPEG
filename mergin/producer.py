@@ -1,17 +1,25 @@
 import asyncio
 import logging
 import shlex
-from asyncio import PriorityQueue
+from asyncio import Queue
 from dataclasses import dataclass
 from dataclasses import field
 from datetime import datetime
 from pathlib import Path
 
 import msgspec
-from model import MultiMedia
 from msgspec import ValidationError
 
-COMMAND = shlex.split("ffprobe -v quiet -print_format json -show_format -show_streams")
+from .model import MultiMedia
+
+COMMAND = shlex.split(
+    f"ffprobe "
+    f"-v quiet "
+    f"-print_format json "
+    f"-show_format "
+    f"-show_streams "
+    f"-select_streams v:0"
+)
 
 
 @dataclass(order=True)
@@ -28,23 +36,29 @@ def _multimedia_decode(stdout: bytes, file: Path) -> MultiMedia | None:
         logging.warning("Failed to decode: %s", file.name)
         return None
 
-    if deserialised.video is None:
+    if deserialised.is_video is False:
         logging.warning("Failed to identify video stream for: %s", file.name)
         return None
 
     return deserialised
 
 
-async def producer(queue: PriorityQueue, file: Path):
-    cmd = COMMAND + [file]
+async def producer(queue: Queue, files: tuple[Path]):
+    for file in files:
+        if file.is_dir():
+            continue
 
-    process = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE)
+        cmd = COMMAND + [file]
+        process = await asyncio.create_subprocess_exec(
+            *cmd, stdout=asyncio.subprocess.PIPE
+        )
 
-    stdout, _ = await process.communicate()
+        stdout, _ = await process.communicate()
+        multimedia = _multimedia_decode(stdout, file)
 
-    multimedia = _multimedia_decode(stdout, file)
+        if multimedia is None:
+            continue
 
-    if multimedia is not None:
         work = Work(
             creation=multimedia.format.tags.creation_time,
             key=multimedia.key,

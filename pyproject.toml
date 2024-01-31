@@ -1,13 +1,17 @@
 [tool.poetry]
-name = "video-mergin-ffmpeg"
-version = "0.1.0"
+name = "Video-Mergin-FFMPEG"
+version = "0.4.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
-readme = "README.md"
+authors = ["https://github.com/oalsaab"]
+packages = [{ include = "mergin" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 msgspec = "^0.18.5"
+click = "^8.1.7"
+
+[tool.poetry.scripts]
+merge = "mergin.merge:mergin"
 
 
 [build-system]
