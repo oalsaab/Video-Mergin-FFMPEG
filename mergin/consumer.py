@@ -10,11 +10,11 @@ from .producer import Work
 Partitioned: TypeAlias = dict[Path, list[Work]]
 
 
-async def consumer(queue: Queue) -> list[Work]:
+async def consumer(queue: Queue[Work | None]) -> list[Work]:
     ordered = []
 
     while True:
-        item: Work = await queue.get()
+        item = await queue.get()
         queue.task_done()
 
         if item is None:
