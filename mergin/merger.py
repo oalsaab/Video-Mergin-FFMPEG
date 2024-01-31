@@ -48,11 +48,9 @@ def merger(merge_path: Path, inputs: list[Path]) -> Iterator[Result]:
     with Pool(uniques) as pool:
         for result in pool.imap_unordered(process, inputs):
             logging.info(result)
-
             yield result
 
 
-# Read the docs on concat, add notes in readme that it is a demuxer / muxer.
 def _concat(merge_path: Path, txt_input: Path) -> Result:
     cmd = shlex.split(
         f"ffmpeg "
