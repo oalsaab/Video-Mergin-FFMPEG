@@ -1,8 +1,10 @@
 import asyncio
 import logging
+import time
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass
+from itertools import islice
 from pathlib import Path
 from typing import NamedTuple
 from uuid import UUID
@@ -16,7 +18,8 @@ from .merger import finalise
 from .merger import merger
 from .producer import producer
 
-LIMIT = 10
+QUEUE_LIMIT = 10
+SLICE_LIMIT = 50
 
 
 @dataclass
@@ -31,12 +34,12 @@ class Context:
     def merge_path(self) -> Path:
         return Path(f"{self.directory}/{self.uuid}")
 
-    def __iter__(self) -> Iterator[Path]:
-        for file in self.directory.iterdir():
-            if file.is_dir():
-                continue
+    def __iter__(self) -> Iterator[tuple[Path]]:
+        # Implementation of: https://docs.python.org/3/library/itertools.html#itertools.batched
+        it = self.directory.iterdir()
 
-            yield file
+        while batch := tuple(islice(it, SLICE_LIMIT)):
+            yield batch
 
     def __str__(self) -> str:
         return f"Created directory to store results: {self.merge_path.name}"
@@ -48,17 +51,21 @@ class PreProcessed(NamedTuple):
 
 
 async def preprocess(directory: Path) -> PreProcessed:
-    queue = asyncio.Queue(LIMIT)
+    queue = asyncio.Queue(QUEUE_LIMIT)
 
     context = Context(directory, uuid.uuid4())
     logging.info(context)
 
-    producers = asyncio.create_task(producer(queue, context))
+    producers = [asyncio.create_task(producer(queue, batch)) for batch in context]
     consumers = asyncio.create_task(consumer(queue))
 
-    _, consumed = await asyncio.gather(producers, consumers)
+    await asyncio.gather(*producers)
 
+    # Async queue termination is currently limited: https://discuss.python.org/t/queue-termination/18386
     await queue.join()
+    await queue.put(None)
+
+    consumed = await consumers
     partitions = await partition(consumed)
 
     inputs = writer(context.merge_path, partitions)
