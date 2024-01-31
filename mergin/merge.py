@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import time
 import uuid
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -69,7 +68,6 @@ async def preprocess(directory: Path) -> PreProcessed:
 @click.command()
 @click.argument("directory", type=click.Path(exists=True, path_type=Path))
 def mergin(directory: Path):
-    t0 = time.perf_counter()
     logging.basicConfig(level=logging.INFO)
 
     logging.info("Initiating Preprocessing...")
@@ -81,8 +79,3 @@ def mergin(directory: Path):
     finalise(preprocessed.context.merge_path, merged)
 
     logging.info("Completed Merges")
-    t1 = time.perf_counter()
-
-    performance = t1 - t0
-
-    logging.info("Finished processing: %f", performance)
