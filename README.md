@@ -10,7 +10,7 @@ If you don't care about ordering then you're probably better off with a simple b
 
 You'll find that merged files are split by codecs, dimensions and audio, this is to simplify the concatantion process (the alternative is requiring wizard level understanding of concat filters).
 
-### Usage
+## Usage
 
 Make sure you have `FFprobe` & `FFmpeg` installed & accessible through env variables.
 
